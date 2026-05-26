@@ -8,3 +8,4 @@ psycopg2-binary
 qrcode
 python-decouple
 dj-database-url==2.2.0
+gunicorn>=21.2
