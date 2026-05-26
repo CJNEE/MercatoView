@@ -8,6 +8,11 @@ export const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+const API_BASE = import.meta.env.VITE_API_URL;
+
+export async function login(username: string, password: string) {
+  return axios.post(`${API_BASE}/api/auth/token/`, { username, password });
+}
 
 // Request interceptor to attach JWT token
 api.interceptors.request.use(
