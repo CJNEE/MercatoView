@@ -1,7 +1,7 @@
 import axios from "axios";
 
-// Use environment variable for base URL
-const API_BASE = import.meta.env.VITE_API_URL;
+// Use environment variable for base URL and prepend /api for all endpoints
+const API_BASE = `${import.meta.env.VITE_API_URL}/api`;
 
 export const api = axios.create({
   baseURL: API_BASE,
@@ -10,9 +10,9 @@ export const api = axios.create({
   },
 });
 
-// Login function
+// Login function (no leading /api because base already includes it)
 export async function login(username: string, password: string) {
-  return api.post("/api/auth/token/", { username, password });
+  return api.post("/auth/token/", { username, password });
 }
 
 // Request interceptor to attach JWT token
@@ -27,7 +27,7 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor to handle auto token refresh
+// Response interceptor to handle auto token refresh (adjust path)
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -39,7 +39,7 @@ api.interceptors.response.use(
 
       if (refreshToken) {
         try {
-          const response = await api.post("/api/auth/token/refresh/", {
+          const response = await api.post("/auth/token/refresh/", {
             refresh: refreshToken,
           });
 
@@ -59,3 +59,4 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+

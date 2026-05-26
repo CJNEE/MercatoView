@@ -113,6 +113,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # CORS Config
 CORS_ALLOWED_ORIGINS = [
     "https://mercato-view.vercel.app",
+    "https://mercatoview-cj.onrender.com",
 ]
 CORS_ALLOW_CREDENTIALS = True
 
