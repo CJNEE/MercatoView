@@ -2,7 +2,7 @@ import os
 import sys
 from pathlib import Path
 from datetime import timedelta
-
+import dj_database_url
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -12,8 +12,16 @@ sys.path.insert(0, str(BASE_DIR / 'apps'))
 # Quick-start development settings - unsuitable for production
 SECRET_KEY = 'django-insecure-mercatoview-super-secret-key-12345'
 DEBUG = True
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [
+    "your-render-service.onrender.com",
+    "mercato-view.vercel.app",
+]
 
+DATABASES = {
+    'default': dj_database_url.config(
+        default="sqlite:///db.sqlite3"
+    )
+}
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -103,7 +111,9 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # CORS Config
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    "https://mercato-view.vercel.app",
+]
 CORS_ALLOW_CREDENTIALS = True
 
 # REST Framework configuration
