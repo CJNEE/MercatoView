@@ -13,6 +13,11 @@ class User(AbstractUser):
     # Use email for login instead of username if desired, but keep both supported.
     REQUIRED_FIELDS = ['email']
 
+    def save(self, *args, **kwargs):
+        if self.is_superuser:
+            self.role = 'ADMIN'
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.username} ({self.role})"
 
