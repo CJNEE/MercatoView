@@ -13,7 +13,7 @@ sys.path.insert(0, str(BASE_DIR / 'apps'))
 SECRET_KEY = 'django-insecure-mercatoview-super-secret-key-12345'
 DEBUG = True
 ALLOWED_HOSTS = [
-    "https://mercatoview-cj.onrender.com",
+    "mercatoview-cj.onrender.com",
     "mercato-view.vercel.app",
 ]
 
