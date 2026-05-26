@@ -19,7 +19,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'role', 'profile']
+        fields = ['id', 'username', 'email', 'role', 'is_active', 'profile']
 
     def get_profile(self, obj):
         if obj.role == 'CUSTOMER':
@@ -50,7 +50,8 @@ class RegisterSerializer(serializers.ModelSerializer):
         contact_number = validated_data.pop('contact_number', '')
 
         user = User.objects.create_user(**validated_data)
-        user.is_active = True
+        # New users start as inactive; admin must activate
+        user.is_active = False
         user.set_password(password)
         user.save()
 

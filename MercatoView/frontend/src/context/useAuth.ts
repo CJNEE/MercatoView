@@ -51,6 +51,13 @@ export const useAuth = create<AuthState>((set, get) => {
         
         // Fetch user profile info
         const profileResponse = await api.get('auth/profile/');
+        // After login, redirect to previously saved path if any
+        const savedPath = localStorage.getItem('last_path');
+        if (savedPath) {
+          // Clear saved path after using it
+          localStorage.removeItem('last_path');
+          window.location.replace(savedPath);
+        }
         set({
           user: profileResponse.data,
           isAuthenticated: true,

@@ -59,7 +59,8 @@ class SuspendUserView(APIView):
             return Response({"detail": "User not found."}, status=status.HTTP_404_NOT_FOUND)
         
         # Protected accounts: Admins can never be suspended
-        if target.role == 'ADMIN' or target.is_superuser:
+        # Prevent deactivation of protected admin accounts
+        if not target.can_deactivate():
             return Response({"detail": "Administrator accounts cannot be suspended."}, status=status.HTTP_400_BAD_REQUEST)
 
         target.is_active = not target.is_active

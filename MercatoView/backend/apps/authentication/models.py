@@ -21,6 +21,10 @@ class User(AbstractUser):
     def __str__(self):
         return f"{self.username} ({self.role})"
 
+    def can_deactivate(self):
+        """Return False for admin accounts; they cannot be deactivated."""
+        return not (self.role == 'ADMIN' or self.is_superuser)
+
 class CustomerProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='customer_profile')
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
