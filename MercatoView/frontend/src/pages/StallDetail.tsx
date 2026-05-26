@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { useAuth } from '../context/useAuth';
+import { MessageModal } from '../components/MessageModal';
 import { 
   Star, Heart, Flame, MapPin, Clock, Camera, 
-  CheckCircle, ThumbsUp, Send, AlertCircle, Sparkles
+  CheckCircle, ThumbsUp, Send, AlertCircle, Sparkles, ShoppingBag, MessageSquare
 } from 'lucide-react';
 
 interface Product {
@@ -53,12 +54,21 @@ interface Review {
 export const StallDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
+  const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
   
   const [stall, setStall] = useState<Stall | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isFavorited, setIsFavorited] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // Messaging / Order Modal
+  const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
+  const [selectedOrderProduct, setSelectedOrderProduct] = useState<Product | null>(null);
+
+  // Refs for scrolling
+  const menuRef = useRef<HTMLDivElement>(null);
+  const reviewsRef = useRef<HTMLDivElement>(null);
 
   // Review Form States
   const [rating, setRating] = useState(5);
@@ -137,6 +147,22 @@ export const StallDetail: React.FC = () => {
     } catch (err) {
       console.error(err);
     }
+  };
+
+  const scrollToSection = (ref: React.RefObject<HTMLDivElement | null>) => {
+    if (ref.current) {
+      ref.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleOrderClick = (product?: Product) => {
+    if (!isAuthenticated) {
+      alert('Please sign in to place an order or message the seller.');
+      navigate('/login');
+      return;
+    }
+    setSelectedOrderProduct(product || null);
+    setIsMessageModalOpen(true);
   };
 
   const handleReviewSubmit = async (e: React.FormEvent) => {
@@ -257,6 +283,28 @@ export const StallDetail: React.FC = () => {
         </div>
       </div>
 
+      {/* 1.5 STICKY NAV: ORDER / REVIEWS */}
+      <div className="sticky top-16 md:top-0 z-20 bg-[#0A0A0A]/90 backdrop-blur-md border-y border-white/10 py-3 flex justify-center gap-4">
+        <button 
+          onClick={() => scrollToSection(menuRef)}
+          className="flex items-center gap-2 px-6 py-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors font-semibold text-sm border border-white/5 text-gray-300 hover:text-white"
+        >
+          <ShoppingBag size={16} /> Order / Menu
+        </button>
+        <button 
+          onClick={() => scrollToSection(reviewsRef)}
+          className="flex items-center gap-2 px-6 py-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors font-semibold text-sm border border-white/5 text-gray-300 hover:text-white"
+        >
+          <Star size={16} /> Reviews
+        </button>
+        <button 
+          onClick={() => handleOrderClick()}
+          className="flex items-center gap-2 px-6 py-2 rounded-full bg-food-orange/10 text-food-orange hover:bg-food-orange/20 transition-colors font-semibold text-sm border border-food-orange/20"
+        >
+          <MessageSquare size={16} /> Message Stall
+        </button>
+      </div>
+
       {/* 2. LAYOUT GRID: MENU VS REVIEWS */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
@@ -283,7 +331,7 @@ export const StallDetail: React.FC = () => {
           )}
 
           {/* Menu Items */}
-          <div className="space-y-4">
+          <div className="space-y-4" ref={menuRef}>
             <h3 className="text-xl font-bold flex items-center gap-2">
               <span>Dish Menu & Pricings</span>
             </h3>
@@ -303,9 +351,19 @@ export const StallDetail: React.FC = () => {
                     <span className="flex items-center text-food-amber gap-0.5">
                       <Star size={10} className="fill-food-amber" /> {product.average_rating} rating
                     </span>
-                    <span className={product.is_available ? 'text-emerald-400' : 'text-red-400'}>
-                      {product.is_available ? '● Available' : '● Sold Out'}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={product.is_available ? 'text-emerald-400' : 'text-red-400'}>
+                        {product.is_available ? '● Available' : '● Sold Out'}
+                      </span>
+                      {product.is_available && (
+                        <button 
+                          onClick={() => handleOrderClick(product)}
+                          className="bg-food-orange text-black px-3 py-1 rounded font-bold hover:bg-food-orange/80 transition-colors"
+                        >
+                          Order
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -314,7 +372,7 @@ export const StallDetail: React.FC = () => {
         </div>
 
         {/* RIGHT COLUMN: REVIEWS & FEEDBACK FORM */}
-        <div className="space-y-8">
+        <div className="space-y-8" ref={reviewsRef}>
           
           {/* Rating Summary */}
           <div className="glass-card p-6 rounded-2xl border border-white/5 text-center space-y-4">
@@ -509,6 +567,13 @@ export const StallDetail: React.FC = () => {
 
       </div>
 
+      <MessageModal 
+        isOpen={isMessageModalOpen}
+        onClose={() => setIsMessageModalOpen(false)}
+        stallId={stall.id}
+        stallName={stall.name}
+        product={selectedOrderProduct}
+      />
     </div>
   );
 };

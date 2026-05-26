@@ -44,3 +44,32 @@ class ProfileView(APIView):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(UserSerializer(user).data)
+
+
+class SuspendUserView(APIView):
+    """Admin-only: toggle a user's is_active flag to suspend / unsuspend."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, user_id):
+        if request.user.role != 'ADMIN':
+            return Response({"detail": "Only admins can suspend users."}, status=status.HTTP_403_FORBIDDEN)
+        try:
+            target = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({"detail": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+        target.is_active = not target.is_active
+        target.save()
+        action_word = "unsuspended" if target.is_active else "suspended"
+        return Response({"status": action_word, "is_active": target.is_active})
+
+
+class AdminUserListView(APIView):
+    """Admin-only: list all users."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        if request.user.role != 'ADMIN':
+            return Response({"detail": "Only admins can view users."}, status=status.HTTP_403_FORBIDDEN)
+        users = User.objects.all().order_by('-date_joined')
+        serializer = UserSerializer(users, many=True)
+        return Response(serializer.data)

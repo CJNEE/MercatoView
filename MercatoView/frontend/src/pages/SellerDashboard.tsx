@@ -52,6 +52,9 @@ export const SellerDashboard: React.FC = () => {
   const [editingProdId, setEditingProdId] = useState<number | null>(null);
   const [submittingProduct, setSubmittingProduct] = useState(false);
 
+  // Gallery
+  const [uploadingGallery, setUploadingGallery] = useState(false);
+
   const fetchAllData = () => {
     setLoading(true);
     Promise.all([
@@ -112,6 +115,25 @@ export const SellerDashboard: React.FC = () => {
     }
   };
 
+  const handleUploadGalleryImages = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.length) return;
+    setUploadingGallery(true);
+    const formData = new FormData();
+    Array.from(e.target.files).forEach(file => formData.append('images', file));
+    try {
+      await api.post(`stalls/${stall.id}/add_images/`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      const res = await api.get('stalls/my_stall/');
+      setStall(res.data);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to upload images.');
+    } finally {
+      setUploadingGallery(false);
+    }
+  };
+
   const handleAddEditProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmittingProduct(true);
@@ -161,9 +183,10 @@ export const SellerDashboard: React.FC = () => {
 
   const handleGenerateQR = async () => {
     try {
+      const frontendUrl = import.meta.env.VITE_FRONTEND_URL || window.location.origin;
       await api.post('qrcodes/', {
         stall: stall.id,
-        target_url: `http://localhost:5173/stalls/${stall.id}?scan=true`
+        target_url: `${frontendUrl}/stalls/${stall.id}?scan=true`
       });
       const qrsRes = await api.get('qrcodes/');
       setQrcodes(qrsRes.data);
@@ -326,6 +349,7 @@ export const SellerDashboard: React.FC = () => {
 
       {/* TAB CONTENT 2: STALL MANAGEMENT PROFILE FORM */}
       {activeTab === 'stall' && (
+        <div className="space-y-6">
         <form onSubmit={handleUpdateStall} className="glass-card p-6 rounded-2xl border border-white/5 space-y-6">
           <h3 className="font-bold text-white text-base">Stall Profile Details</h3>
           
@@ -444,6 +468,32 @@ export const SellerDashboard: React.FC = () => {
             <span>{savingStall ? 'Saving Changes...' : 'Save Stall Settings'}</span>
           </button>
         </form>
+        
+        <div className="glass-card p-6 rounded-2xl border border-white/5 space-y-4">
+          <h3 className="font-bold text-white text-base">Gallery Images</h3>
+          <div className="flex flex-wrap gap-4">
+            {stall.images && stall.images.map((img: any, idx: number) => (
+              <div key={idx} className="w-32 h-32 rounded-xl border border-white/10 overflow-hidden">
+                <img src={img} alt="Gallery" className="w-full h-full object-cover" />
+              </div>
+            ))}
+            <label className="w-32 h-32 rounded-xl border border-dashed border-white/20 flex flex-col items-center justify-center text-gray-500 cursor-pointer hover:bg-white/5 hover:text-white transition-all">
+              <Image size={24} className="mb-2" />
+              <span className="text-xs font-semibold text-center px-2">
+                {uploadingGallery ? 'Uploading...' : 'Upload Images'}
+              </span>
+              <input 
+                type="file" 
+                multiple 
+                accept="image/*" 
+                className="hidden" 
+                onChange={handleUploadGalleryImages}
+                disabled={uploadingGallery}
+              />
+            </label>
+          </div>
+        </div>
+      </div>
       )}
 
       {/* TAB CONTENT 3: PRODUCTS / MENU DISH CRUD PANEL */}
@@ -596,7 +646,7 @@ export const SellerDashboard: React.FC = () => {
                 {qr.qr_image ? (
                   <div className="bg-white p-2.5 rounded-lg w-44 h-44 flex items-center justify-center">
                     <img 
-                      src={`http://localhost:8000${qr.qr_image}`} 
+                      src={qr.qr_image} 
                       alt="Stall QR code" 
                       className="w-full h-full object-contain"
                     />
@@ -608,7 +658,7 @@ export const SellerDashboard: React.FC = () => {
                 )}
                 {qr.qr_image && (
                   <a
-                    href={`http://localhost:8000${qr.qr_image}`}
+                    href={qr.qr_image}
                     download={`stall_${stall.id}_qrcode.png`}
                     target="_blank"
                     rel="noreferrer"

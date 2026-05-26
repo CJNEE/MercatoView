@@ -158,20 +158,23 @@ export const Discover: React.FC = () => {
 
       {/* 3. SEARCH & DYNAMIC FILTER BAR */}
       <div className="space-y-4">
-        <div className="flex flex-col md:flex-row gap-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-            <input
-              type="text"
-              placeholder="Search by vendor name, dish category, or cuisine..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full input-field pl-12"
-            />
+        <div className="flex flex-col md:flex-row gap-4 items-end">
+          <div className="relative flex-1 w-full">
+            <label className="text-xs font-semibold text-gray-400 block mb-2">Search Market</label>
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+              <input
+                type="text"
+                placeholder="Search by stall name, dish, or cuisine..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full input-field pl-12 py-3"
+              />
+            </div>
           </div>
           <button 
             onClick={() => setShowFiltersDrawer(!showFiltersDrawer)}
-            className="btn-secondary py-3 px-4 border border-white/10"
+            className="btn-secondary py-3 px-6 border border-white/10 flex items-center justify-center gap-2 h-[46px] w-full md:w-auto"
           >
             <SlidersHorizontal size={18} />
             <span>Filters</span>
@@ -180,25 +183,25 @@ export const Discover: React.FC = () => {
 
         {/* Filter Drawer */}
         {showFiltersDrawer && (
-          <div className="p-5 glass-card rounded-2xl grid grid-cols-1 sm:grid-cols-3 gap-4 animate-slideDown">
-            <div>
-              <label className="text-xs text-gray-400 block mb-1">Cuisine Type</label>
+          <div className="p-6 glass-card rounded-2xl grid grid-cols-1 sm:grid-cols-3 gap-6 animate-slideDown border border-white/10 mt-2">
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-gray-300 block">Cuisine Type</label>
               <select 
                 value={selectedCuisine}
                 onChange={(e) => setSelectedCuisine(e.target.value)}
-                className="w-full bg-[#161616] border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-food-orange"
+                className="w-full bg-[#161616] border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-food-orange text-white"
               >
                 <option value="">All Cuisines</option>
                 {cuisines.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             
-            <div>
-              <label className="text-xs text-gray-400 block mb-1">Crowd Velocity</label>
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-gray-300 block">Crowd Level</label>
               <select
                 value={selectedCrowd}
                 onChange={(e) => setSelectedCrowd(e.target.value)}
-                className="w-full bg-[#161616] border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-food-orange"
+                className="w-full bg-[#161616] border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-food-orange text-white"
               >
                 <option value="">All Crowd Levels</option>
                 <option value="LOW">Relaxed / Quiet</option>
@@ -207,12 +210,12 @@ export const Discover: React.FC = () => {
               </select>
             </div>
 
-            <div>
-              <label className="text-xs text-gray-400 block mb-1">Price Range</label>
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-gray-300 block">Price Range</label>
               <select
                 value={selectedPrice}
                 onChange={(e) => setSelectedPrice(e.target.value)}
-                className="w-full bg-[#161616] border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-food-orange"
+                className="w-full bg-[#161616] border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-food-orange text-white"
               >
                 <option value="">Any Price</option>
                 <option value="$">Budget ($)</option>

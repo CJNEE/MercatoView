@@ -6,14 +6,14 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 # Import views
-from authentication.views import RegisterView, ProfileView
+from authentication.views import RegisterView, ProfileView, SuspendUserView, AdminUserListView
 from stalls.views import StallViewSet, ProductViewSet
 from reviews.views import ReviewViewSet, FavoriteViewSet
 from analytics.views import (
     LogAnalyticsEventView, SellerAnalyticsView, 
     AdminAnalyticsView, DiscoverLeaderboardView, DiscoverTrendingView
 )
-from promotions.views import PromotionViewSet, QRCodeViewSet, NotificationViewSet
+from promotions.views import PromotionViewSet, QRCodeViewSet, NotificationViewSet, MessageViewSet
 
 router = DefaultRouter()
 router.register(r'stalls', StallViewSet, basename='stall')
@@ -23,6 +23,7 @@ router.register(r'favorites', FavoriteViewSet, basename='favorite')
 router.register(r'promotions', PromotionViewSet, basename='promotion')
 router.register(r'qrcodes', QRCodeViewSet, basename='qrcode')
 router.register(r'notifications', NotificationViewSet, basename='notification')
+router.register(r'messages', MessageViewSet, basename='message')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -35,6 +36,10 @@ urlpatterns = [
     path('api/auth/profile/', ProfileView.as_view(), name='profile'),
     path('api/auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    
+    # Admin user management
+    path('api/admin/users/', AdminUserListView.as_view(), name='admin_users'),
+    path('api/admin/users/<int:user_id>/suspend/', SuspendUserView.as_view(), name='suspend_user'),
     
     # Custom Analytics endpoints
     path('api/analytics/event/', LogAnalyticsEventView.as_view(), name='log_event'),

@@ -1,8 +1,9 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.parsers import MultiPartParser, FormParser
 from django.db.models import Q
-from stalls.models import Stall, Product, StallLocation
+from stalls.models import Stall, Product, StallLocation, StallImage
 from stalls.serializers import StallSerializer, StallCreateUpdateSerializer, ProductSerializer
 from math import radians, cos, sin, asin, sqrt
 
@@ -81,10 +82,48 @@ class StallViewSet(viewsets.ModelViewSet):
             return Response({"detail": "Only sellers have their own stalls."}, status=status.HTTP_400_BAD_REQUEST)
         try:
             stall = Stall.objects.get(seller=request.user.seller_profile)
-            serializer = StallSerializer(stall)
+            serializer = StallSerializer(stall, context={'request': request})
             return Response(serializer.data)
         except Stall.DoesNotExist:
             return Response({"detail": "You have not registered a stall yet."}, status=status.HTTP_404_NOT_FOUND)
+
+    # ── Admin: Approve a stall ──────────────────────────────────────────
+    @action(detail=True, methods=['POST'], permission_classes=[permissions.IsAuthenticated])
+    def approve(self, request, pk=None):
+        if request.user.role != 'ADMIN':
+            return Response({"detail": "Only admins can approve stalls."}, status=status.HTTP_403_FORBIDDEN)
+        stall = self.get_object()
+        stall.is_approved = True
+        stall.save()
+        return Response({"status": "approved"})
+
+    # ── Admin: Reject a stall ───────────────────────────────────────────
+    @action(detail=True, methods=['POST'], permission_classes=[permissions.IsAuthenticated])
+    def reject(self, request, pk=None):
+        if request.user.role != 'ADMIN':
+            return Response({"detail": "Only admins can reject stalls."}, status=status.HTTP_403_FORBIDDEN)
+        stall = self.get_object()
+        stall.is_approved = False
+        stall.save()
+        return Response({"status": "rejected"})
+
+    # ── Seller: Upload gallery images ───────────────────────────────────
+    @action(detail=True, methods=['POST'], permission_classes=[permissions.IsAuthenticated],
+            parser_classes=[MultiPartParser, FormParser])
+    def upload_images(self, request, pk=None):
+        stall = self.get_object()
+        # Only stall owner or admin
+        if request.user.role == 'SELLER' and stall.seller.user != request.user:
+            return Response({"detail": "Not your stall."}, status=status.HTTP_403_FORBIDDEN)
+        files = request.FILES.getlist('images')
+        if not files:
+            return Response({"detail": "No images provided."}, status=status.HTTP_400_BAD_REQUEST)
+        created = []
+        for f in files:
+            img = StallImage.objects.create(image=f)
+            stall.images.add(img)
+            created.append({"id": img.id, "url": request.build_absolute_uri(img.image.url)})
+        return Response({"uploaded": created}, status=status.HTTP_201_CREATED)
 
     @action(detail=False, methods=['GET'], permission_classes=[permissions.AllowAny])
     def nearby(self, request):
@@ -104,7 +143,7 @@ class StallViewSet(viewsets.ModelViewSet):
                 location = stall.location
                 dist = self.haversine(user_lng, user_lat, location.longitude, location.latitude)
                 if dist <= radius:
-                    stall_data = StallSerializer(stall).data
+                    stall_data = StallSerializer(stall, context={'request': request}).data
                     stall_data['distance_km'] = round(dist, 3)
                     nearby_stalls.append(stall_data)
             except StallLocation.DoesNotExist:

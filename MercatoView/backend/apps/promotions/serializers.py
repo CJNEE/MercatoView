@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from promotions.models import Promotion, QRCode, Notification
+from promotions.models import Promotion, QRCode, Notification, Message
 
 class PromotionSerializer(serializers.ModelSerializer):
     stall_name = serializers.CharField(source='stall.name', read_only=True)
@@ -22,3 +22,13 @@ class NotificationSerializer(serializers.ModelSerializer):
         model = Notification
         fields = ['id', 'user', 'title', 'message', 'is_read', 'notification_type', 'created_at']
         read_only_fields = ['user', 'created_at']
+
+class MessageSerializer(serializers.ModelSerializer):
+    sender_username = serializers.CharField(source='sender.username', read_only=True)
+    stall_name = serializers.CharField(source='stall.name', read_only=True)
+    product_name = serializers.CharField(source='product.name', read_only=True, default=None)
+
+    class Meta:
+        model = Message
+        fields = ['id', 'sender', 'sender_username', 'stall', 'stall_name', 'product', 'product_name', 'content', 'created_at']
+        read_only_fields = ['sender', 'created_at']

@@ -43,12 +43,7 @@ export const AdminDashboard: React.FC = () => {
 
   useEffect(() => {
     fetchAdminData();
-    // Simulate user list for admin control
-    setUsers([
-      { id: 10, username: 'spammer_99', email: 'spam@gmail.com', role: 'CUSTOMER', is_active: true },
-      { id: 11, username: 'fake_vendor', email: 'fake@gmail.com', role: 'SELLER', is_active: true },
-      { id: 12, username: 'good_user', email: 'good@gmail.com', role: 'CUSTOMER', is_active: true }
-    ]);
+    api.get('admin/users/').then(res => setUsers(res.data)).catch(console.error);
   }, []);
 
   const handleApproveStall = async (id: number) => {
@@ -85,15 +80,20 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
-  const handleToggleUserStatus = (userId: number) => {
-    setUsers(prev => prev.map(u => {
-      if (u.id === userId) {
-        const nextStatus = !u.is_active;
-        alert(`Account '${u.username}' has been ${nextStatus ? 'activated' : 'suspended'}.`);
-        return { ...u, is_active: nextStatus };
-      }
-      return u;
-    }));
+  const handleToggleUserStatus = async (userId: number) => {
+    try {
+      const res = await api.post(`admin/users/${userId}/suspend/`);
+      setUsers(prev => prev.map(u => {
+        if (u.id === userId) {
+          alert(`Account has been ${res.data.status}.`);
+          return { ...u, is_active: res.data.is_active };
+        }
+        return u;
+      }));
+    } catch (err) {
+      console.error(err);
+      alert('Failed to update user status.');
+    }
   };
 
   if (loading) {

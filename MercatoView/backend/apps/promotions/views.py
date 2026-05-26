@@ -4,8 +4,8 @@ from django.core.files import File
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from promotions.models import Promotion, QRCode, Notification
-from promotions.serializers import PromotionSerializer, QRCodeSerializer, NotificationSerializer
+from promotions.models import Promotion, QRCode, Notification, Message
+from promotions.serializers import PromotionSerializer, QRCodeSerializer, NotificationSerializer, MessageSerializer
 
 class PromotionViewSet(viewsets.ModelViewSet):
     queryset = Promotion.objects.all()
@@ -81,3 +81,26 @@ class NotificationViewSet(viewsets.ModelViewSet):
         notif.is_read = True
         notif.save()
         return Response({"status": "marked as read"})
+
+
+class MessageViewSet(viewsets.ModelViewSet):
+    """Customer sends messages to stalls (order enquiries)."""
+    queryset = Message.objects.all()
+    serializer_class = MessageSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role == 'ADMIN':
+            return Message.objects.all()
+        elif user.role == 'SELLER':
+            try:
+                stall = user.seller_profile.stall
+                return Message.objects.filter(stall=stall)
+            except Exception:
+                return Message.objects.none()
+        # Customers see their own sent messages
+        return Message.objects.filter(sender=user)
+
+    def perform_create(self, serializer):
+        serializer.save(sender=self.request.user)

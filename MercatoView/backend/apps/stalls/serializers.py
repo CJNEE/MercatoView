@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from stalls.models import Stall, StallLocation, Product, ProductImage
+from stalls.models import Stall, StallLocation, Product, ProductImage, StallImage
 
 class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -44,6 +44,7 @@ class StallLocationSerializer(serializers.ModelSerializer):
 class StallSerializer(serializers.ModelSerializer):
     location = StallLocationSerializer(read_only=True)
     products = ProductSerializer(many=True, read_only=True)
+    images = serializers.SerializerMethodField()
     seller_username = serializers.CharField(source='seller.user.username', read_only=True)
     seller_business_name = serializers.CharField(source='seller.business_name', read_only=True)
 

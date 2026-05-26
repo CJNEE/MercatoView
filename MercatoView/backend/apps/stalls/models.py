@@ -1,6 +1,12 @@
 from django.db import models
 from authentication.models import SellerProfile
 
+class StallImage(models.Model):
+    image = models.ImageField(upload_to='stall_images/')
+
+    def __str__(self):
+        return f"Stall Image {self.id}"
+
 class Stall(models.Model):
     CROWD_LEVEL_CHOICES = (
         ('LOW', 'Low'),
@@ -30,6 +36,9 @@ class Stall(models.Model):
     is_featured = models.BooleanField(default=False)
     is_approved = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    # New many‑to‑many relationship for additional stall images
+    images = models.ManyToManyField(StallImage, blank=True, related_name='stalls')
 
     def __str__(self):
         return self.name
