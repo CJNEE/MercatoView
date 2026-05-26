@@ -39,7 +39,8 @@ api.interceptors.response.use(
 
       if (refreshToken) {
         try {
-          const response = await api.post("/auth/token/refresh/", {
+          // Use raw axios to bypass the request interceptor (don't send expired access token)
+          const response = await axios.post(`${API_BASE}/auth/token/refresh/`, {
             refresh: refreshToken,
           });
 
