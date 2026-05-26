@@ -57,10 +57,30 @@ class SuspendUserView(APIView):
             target = User.objects.get(id=user_id)
         except User.DoesNotExist:
             return Response({"detail": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Protected accounts: Admins can never be suspended
+        if target.role == 'ADMIN' or target.is_superuser:
+            return Response({"detail": "Administrator accounts cannot be suspended."}, status=status.HTTP_400_BAD_REQUEST)
+
         target.is_active = not target.is_active
         target.save()
         action_word = "unsuspended" if target.is_active else "suspended"
         return Response({"status": action_word, "is_active": target.is_active})
+
+
+class ReactivateAllUsersView(APIView):
+    """Admin-only: reactivate all suspended accounts."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        if request.user.role != 'ADMIN':
+            return Response({"detail": "Only admins can reactivate users."}, status=status.HTTP_403_FORBIDDEN)
+        # Reactivate all users except admin accounts
+        updated = User.objects.filter(is_active=False).exclude(role='ADMIN').update(is_active=True)
+        return Response({
+            "detail": f"Successfully reactivated {updated} accounts.",
+            "status": "success"
+        })
 
 
 class AdminUserListView(APIView):

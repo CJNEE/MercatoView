@@ -50,16 +50,26 @@ class RegisterSerializer(serializers.ModelSerializer):
         contact_number = validated_data.pop('contact_number', '')
 
         user = User.objects.create_user(**validated_data)
+        user.is_active = True
         user.set_password(password)
         user.save()
 
         # Create Profile
         if role == 'SELLER':
-            SellerProfile.objects.create(
+            seller_profile = SellerProfile.objects.create(
                 user=user, 
                 business_name=business_name or f"{user.username}'s Stall",
                 contact_number=contact_number
             )
+            # Automatically create a Stall and Location for smooth onboarding
+            from stalls.models import Stall, StallLocation
+            stall = Stall.objects.create(
+                seller=seller_profile,
+                name=seller_profile.business_name,
+                cuisine_type="Grill",
+                is_approved=False
+            )
+            StallLocation.objects.create(stall=stall)
         else:
             CustomerProfile.objects.create(user=user)
         

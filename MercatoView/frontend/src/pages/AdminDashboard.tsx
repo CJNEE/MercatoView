@@ -96,6 +96,19 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
+  const handleReactivateAll = async () => {
+    if (confirm('Are you sure you want to reactivate all suspended accounts?')) {
+      try {
+        const res = await api.post('admin/users/reactivate-all/');
+        alert(res.data.detail || 'All accounts reactivated successfully.');
+        api.get('admin/users/').then(res => setUsers(res.data)).catch(console.error);
+      } catch (err) {
+        console.error(err);
+        alert('Failed to reactivate all accounts.');
+      }
+    }
+  };
+
   if (loading) {
     return <div className="text-center py-12 text-gray-500">Retrieving system administrator records...</div>;
   }
@@ -266,7 +279,16 @@ export const AdminDashboard: React.FC = () => {
       {/* TAB CONTENT 4: USER BANNING & SUSPENSIONS */}
       {activeTab === 'users' && (
         <div className="glass-card p-6 rounded-2xl border border-white/5 space-y-4">
-          <h3 className="font-bold text-white text-base">User Moderation & Account Suspension</h3>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <h3 className="font-bold text-white text-base">User Moderation & Account Suspension</h3>
+            <button
+              onClick={handleReactivateAll}
+              className="bg-emerald-500 text-black font-semibold text-xs px-3 py-1.5 rounded flex items-center gap-1.5 hover:opacity-90 transition-all shadow-md shadow-emerald-500/10"
+            >
+              <Check size={14} />
+              <span>Reactivate All Suspended</span>
+            </button>
+          </div>
           
           <div className="space-y-3">
             {users.map((u) => (
@@ -276,17 +298,23 @@ export const AdminDashboard: React.FC = () => {
                   <p className="text-[10px] text-gray-500">{u.email} • Role: {u.role}</p>
                 </div>
 
-                <button
-                  onClick={() => handleToggleUserStatus(u.id)}
-                  className={`px-3 py-1.5 rounded text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                    u.is_active
-                      ? 'bg-red-500/15 border border-red-500/30 text-red-400 hover:bg-red-500/25'
-                      : 'bg-emerald-500 text-black hover:opacity-90'
-                  }`}
-                >
-                  <UserX size={13} />
-                  <span>{u.is_active ? 'Suspend Account' : 'Reactivate'}</span>
-                </button>
+                {u.role === 'ADMIN' ? (
+                  <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider bg-white/5 border border-white/10 px-2.5 py-1.5 rounded">
+                    Protected Admin
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => handleToggleUserStatus(u.id)}
+                    className={`px-3 py-1.5 rounded text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                      u.is_active
+                        ? 'bg-red-500/15 border border-red-500/30 text-red-400 hover:bg-red-500/25'
+                        : 'bg-emerald-500 text-black hover:opacity-90'
+                    }`}
+                  >
+                    <UserX size={13} />
+                    <span>{u.is_active ? 'Suspend Account' : 'Reactivate'}</span>
+                  </button>
+                )}
               </div>
             ))}
           </div>

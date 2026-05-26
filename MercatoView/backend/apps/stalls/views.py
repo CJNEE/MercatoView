@@ -73,7 +73,11 @@ class StallViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         # Link to the seller profile of the logged-in user
-        seller_profile = self.request.user.seller_profile
+        from authentication.models import SellerProfile
+        seller_profile, _ = SellerProfile.objects.get_or_create(
+            user=self.request.user,
+            defaults={'business_name': f"{self.request.user.username}'s Stall"}
+        )
         serializer.save(seller=seller_profile)
 
     @action(detail=False, methods=['GET'], permission_classes=[permissions.IsAuthenticated])
@@ -109,7 +113,7 @@ class StallViewSet(viewsets.ModelViewSet):
 
     # ── Seller: Upload gallery images ───────────────────────────────────
     @action(detail=True, methods=['POST'], permission_classes=[permissions.IsAuthenticated],
-            parser_classes=[MultiPartParser, FormParser])
+            parser_classes=[MultiPartParser, FormParser], url_path='add_images')
     def upload_images(self, request, pk=None):
         stall = self.get_object()
         # Only stall owner or admin

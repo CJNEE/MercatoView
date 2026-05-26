@@ -54,9 +54,19 @@ class StallSerializer(serializers.ModelSerializer):
             'id', 'seller', 'seller_username', 'seller_business_name',
             'name', 'description', 'logo', 'banner', 'cuisine_type',
             'price_range', 'operating_hours', 'average_rating', 'reviews_count',
-            'crowd_level', 'is_featured', 'is_approved', 'location', 'products', 'created_at'
+            'crowd_level', 'is_featured', 'is_approved', 'images', 'location', 'products', 'created_at'
         ]
         read_only_fields = ['average_rating', 'reviews_count', 'is_featured', 'is_approved']
+
+    def get_images(self, obj):
+        request = self.context.get('request')
+        return [
+            {
+                "id": img.id,
+                "url": request.build_absolute_uri(img.image.url) if request else img.image.url
+            }
+            for img in obj.images.all()
+        ]
 
 class StallCreateUpdateSerializer(serializers.ModelSerializer):
     location = StallLocationSerializer(required=False)

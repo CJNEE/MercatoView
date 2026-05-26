@@ -6,7 +6,7 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 # Import views
-from authentication.views import RegisterView, ProfileView, SuspendUserView, AdminUserListView
+from authentication.views import RegisterView, ProfileView, SuspendUserView, AdminUserListView, ReactivateAllUsersView
 from stalls.views import StallViewSet, ProductViewSet
 from reviews.views import ReviewViewSet, FavoriteViewSet
 from analytics.views import (
@@ -40,6 +40,7 @@ urlpatterns = [
     # Admin user management
     path('api/admin/users/', AdminUserListView.as_view(), name='admin_users'),
     path('api/admin/users/<int:user_id>/suspend/', SuspendUserView.as_view(), name='suspend_user'),
+    path('api/admin/users/reactivate-all/', ReactivateAllUsersView.as_view(), name='reactivate_all_users'),
     
     # Custom Analytics endpoints
     path('api/analytics/event/', LogAnalyticsEventView.as_view(), name='log_event'),
