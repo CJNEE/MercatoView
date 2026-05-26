@@ -1,0 +1,9 @@
+django>=4.2,<5.1
+djangorestframework
+djangorestframework-simplejwt
+django-cors-headers
+django-filter
+Pillow
+psycopg2-binary
+qrcode
+python-decouple
